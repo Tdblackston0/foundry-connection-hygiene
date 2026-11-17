@@ -1,0 +1,14 @@
+{
+  "searchServiceResourceIds": [
+    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Search/searchServices/example-search"
+  ],
+  "projectEndpoints": {},
+  "indexOwnership": [
+    {
+      "searchServiceResourceId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Search/searchServices/example-search",
+      "indexName": "example-index",
+      "projectName": "example-project",
+      "ownerApproved": false
+    }
+  ]
+}

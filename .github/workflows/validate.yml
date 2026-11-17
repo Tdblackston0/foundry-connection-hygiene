@@ -1,0 +1,35 @@
+name: Validate
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  powershell:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test tools
+        shell: pwsh
+        run: |
+          Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force
+          Install-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Scope CurrentUser -Force
+      - name: Syntax, analysis, and tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = Get-ChildItem -Recurse -File -Include *.ps1,*.psm1
+          foreach ($file in $files) {
+            $tokens = $null; $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errors)
+            if ($errors) { throw ($errors | Out-String) }
+          }
+          Import-Module PSScriptAnalyzer -RequiredVersion 1.24.0
+          $issues = @(Invoke-ScriptAnalyzer -Path . -Recurse -Severity Error,Warning)
+          if ($issues) { $issues | Format-Table -AutoSize; throw 'Script analysis failed.' }
+          Import-Module Pester -RequiredVersion 5.7.1
+          $result = Invoke-Pester -Path ./tests -PassThru -Output Detailed
+          if ($result.FailedCount -or $result.FailedContainersCount) { throw 'Tests failed.' }
